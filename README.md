@@ -1,7 +1,7 @@
 # computer_vision
 Programming challenge
 
-binarization
+binarization \n
 image borders
 Dilation-Erosion
 Noise removal
