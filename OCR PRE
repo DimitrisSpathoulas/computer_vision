@@ -1,0 +1,119 @@
+# Here images are prepared for better text recognition
+
+# open an image 
+
+from turtle import right, width
+import cv2 
+# as cv if i want 
+from matplotlib import pyplot as plt
+image_file = "file name of image/name of image.type"
+img = cv2.imread(image_file) # read image
+# display diff images with matplot
+def display(im_path):
+    dpi=80
+    im_data = plt.imread(im_path)
+    height,width,depth = im_data.shape
+    # size to fit image
+    figsize = width/float(dpi),height(dpi)
+    # create a right size fig with one axes taking full figure
+    fig = plt.figure(figsize=figsize)
+    ax=fig.add_axes([0,0,1,1])
+    #hide other
+    ax.axis('off')
+    #display
+    ax.imshow(im_data,cmap='gray')
+
+    plt.show()
+
+
+
+# preprocess image
+
+# invert image black-white for tess 3.0
+inverted_image = cv2.bitwise_not(img)
+cv2.imwrite("temp/inverted.jpg",inverted_image)
+# display("temp/inverted.jpg")
+
+
+# 2) binarization of image MOST IMPORTANT 1ST STEP
+
+# i gray scale
+def grayscale(image):
+    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+gray_image=grayscale(img)
+cv2.imwrite("temp/gray.jpg")
+# display("temp/gray.jpg")
+
+# ii bin
+thresh, im_bw = cv2.threshold(gray_image,70,255,cv2.THRESH_BINARY) #USE GAUSSIAN
+cv2.imwrite("temp/bw_image.jpg",im_bw)
+# display("temp/bw_image.jpg")
+
+
+# 3) Noise cancellation-removal OPTIONAL-OLD DOCUMENTS
+def noise_removal(image):
+    import numpy as np
+    kernel = np.one((1,1), np.unit8)
+    image =cv2.dilate(image, kernel, iterations=1) 
+    #can be diff size
+    kernel = np.ones((1,1), np.unit8)
+    image = cv2.erode(image,kernel, iterations=1) 
+    image = cv2.morphologyEx(image, cv2.MORPH_CLOSE, kernel)
+    image = cv2.medianBlur(image, 3)
+    return (image)
+
+no_noise = noise_removal(im_bw)
+cv2.imwrite("temp/no_noise.jpg",no_noise)
+#diplay("temp/no_noise.jpg")
+
+
+# 4) Dilation-Erosion thicc-thin text
+def thin_font(image):
+    import numpy as np
+    image = cv2.bitwise_not(image)
+    kernel = np.ones((2,2),np.unit8)
+    image = cv2.erode(image,kernel, iterations=1) # thin text
+    image = cv2.bitwise_not(image)
+    return (image)
+
+eroded_image = thin_font(no_noise)
+cv2.imwrite("temp/eroded_image.jpg",eroded_image)
+# display("temp/eroded_image.jpg")
+
+# IMPORTANT STEP
+def thick_font(image):
+    import numpy as np
+    image = cv2.bitwise_not(image)
+    kernel = np.ones((2,2),np.unit8)
+    image = cv2.dilate(image,kernel, iterations=1) # thin text
+    image = cv2.bitwise_not(image)
+    return (image)
+
+dilated_image = thick_font(no_noise)
+cv2.imwrite("temp/dilated_image.jpg",dilated_image)
+# diplay("temp/dilated_image.jpg")
+
+# 5) Borders removal - BOUNDING BOXES FOR AUTO
+def remove_borders(image):
+    contours, heiarchy = cv2.findContours(image,cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+    cntsSorted=sorted(contours, key=lambda x:cv2.contourArea(x))
+    cnt = cntsSorted[-1]
+    x,y,w,h =cv2.boundingRect(cnt)
+    crop =image[y:y+h, x:x+w]
+    return (crop)
+
+no_borders = remove_borders(no_noise)
+cv2.imwrite("temp/no_borders.jpg",no_borders)
+# diplay("temp/no_borders.jpg")
+
+# 6) Missing borders - Add borders THIS IS NEEDED FOR THE TEXT RECONSTRUCTION
+color =[255,255,255]
+top,bottom,left,right = [150]*4
+image_border = cv2.copyMakeBorder(no_noise, top, bottom,left,right, cv2.BORDER.CONSTANT, value=color)
+cv2.imwrite("temp/image_border.jpg",image_border)
+# display("temp/image_border.jpg")
+
+
+
+# TEXT CORRECTION SOLUTIONS

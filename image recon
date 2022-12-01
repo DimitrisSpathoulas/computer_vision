@@ -1,0 +1,50 @@
+# here corrected text images are processed by tesseract
+# installed google tesseract OCR
+# downloaded other lang packs
+# we use the "corrected" image from previous steps
+# we can change the specific way tess reads text (wasnt implemented)
+# simplest way
+# for specific problems other libraries like easyOCR could be also used
+
+
+import pytesseract as tess
+import cv2
+# path to tess.exe
+path_to_tess=r'something\tesseract.exe'
+
+# point tesseract_cmd to tesseract.exe
+tess.tesseract_cmd= path_to_tess
+
+# simplest way
+
+text= tess.image_to_string(corrected, lang='gre') 
+print(text)
+
+# here results are transfered to a txt file - all in first line
+with open("text.txt","w+") as f: # auto creates one txt file if not existing
+    f.write(text)
+    f.close
+
+
+# for in time results we use boxes bounding each char and showing recognised letters 25 pixels below
+
+boxes= tess.image_to_boxes(corrected)
+
+hm, wm, _  =corrected.shape
+
+for b in boxes.splitlines():
+    b = b.split(' ')
+    x,y,w,h= int(b[1]), int(b[2]) ,  int(b[3]),  int(b[4])
+
+    cv2.rectangle(corrected, (x,hm-y), (w,hm-h), (0,0,255), 3 ) # full red
+    cv2.putText(corrected, b[0], (x,hm-y+25), cv2.FONT_HERSHEY_COMPLEX,1, (50,50,255),2)
+
+cv2.imshow('im',corrected)
+
+
+
+# results can be shown in the output or terminal blocks
+
+
+
+

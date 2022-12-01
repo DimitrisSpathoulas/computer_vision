@@ -1,0 +1,17 @@
+# here one more threshold method is shown
+
+import cv2 as cv
+img=cv.imread("image.jpg")
+
+# again convert to gray scale - adaptive (also used in text recon)
+
+img= cv.cvtColor(img, cv.COLOR_RGB2GRAY) # colored
+
+c= cv.adaptiveThreshold(img, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 81, 4) # gaussian
+# 81 for odd surrounded pixels and 4 for noise - THESE NUMBERS ARE NOT FOR ALL IMAGES
+cv.imshow(c)
+
+
+cv.imshow(c)
+
+# here the deskew angle function can be again called
